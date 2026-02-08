@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,                -- UUID
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role TEXT CHECK(role IN ('ADMIN','MANAGER','EDITOR','VIEWER')) NOT NULL,
+    is_active BOOLEAN DEFAULT 1,
+    last_login DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

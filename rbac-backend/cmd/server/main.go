@@ -46,6 +46,10 @@ func main() {
 	userRepo := repositories.NewUserRepository(database)
 	adminHandler := handlers.NewAdminHandler(userRepo)
 
+	// TASK HANDLER
+	taskRepo := repositories.NewTaskRepository(database)
+	taskHandler := handlers.NewTaskHandler(taskRepo)
+
 	// ⭐ PROJECT ROUTES
 
 	http.Handle(
@@ -80,6 +84,61 @@ func main() {
 		middleware.AuthMiddleware(
 			middleware.RBACMiddleware(database, "projects", "create",
 				http.HandlerFunc(projectHandler.DeleteProject),
+			),
+		),
+	)
+
+	// TASK ROUTES
+	http.Handle(
+		"/tasks/create",
+		middleware.AuthMiddleware(
+			middleware.RBACMiddleware(database, "tasks", "create",
+				http.HandlerFunc(taskHandler.CreateTask),
+			),
+		),
+	)
+
+	http.Handle(
+		"/tasks",
+		middleware.AuthMiddleware(
+			middleware.RBACMiddleware(database, "tasks", "view",
+				http.HandlerFunc(taskHandler.ListTasks),
+			),
+		),
+	)
+
+	http.Handle(
+		"/tasks/get",
+		middleware.AuthMiddleware(
+			middleware.RBACMiddleware(database, "tasks", "view",
+				http.HandlerFunc(taskHandler.GetTask),
+			),
+		),
+	)
+
+	http.Handle(
+		"/tasks/update",
+		middleware.AuthMiddleware(
+			middleware.RBACMiddleware(database, "tasks", "edit",
+				http.HandlerFunc(taskHandler.UpdateTask),
+			),
+		),
+	)
+
+	http.Handle(
+		"/tasks/assign",
+		middleware.AuthMiddleware(
+			middleware.RBACMiddleware(database, "tasks", "edit",
+				http.HandlerFunc(taskHandler.AssignTask),
+			),
+		),
+	)
+
+	http.Handle(
+		"/tasks/delete",
+		middleware.AuthMiddleware(
+			middleware.RBACMiddleware(database, "tasks", "delete",
+				http.HandlerFunc(taskHandler.DeleteTask),
 			),
 		),
 	)

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Navbar } from '../components/Navbar';
+// Navbar is rendered by the App wrapper; do not render it here to avoid duplicates.
 import { decodeJWT } from '../utils/jwt';
+import { fetchTasksByProject } from '../api/tasks';
 
 interface User {
   id: string;
@@ -23,6 +24,8 @@ export const Dashboard = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [totalTasks, setTotalTasks] = useState<number | null>(null);
+  const [totalAssignees, setTotalAssignees] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [projectsLoading, setProjectsLoading] = useState(true);
@@ -89,7 +92,28 @@ export const Dashboard = () => {
         if (!res.ok) throw new Error('Failed to fetch projects');
         const data = await res.json();
         // handler returns array of project objects
-        setProjects(data || []);
+        const proj: Project[] = data || [];
+        setProjects(proj);
+
+        // compute total unique assignees across projects
+        const assigneeSet = new Set<string>();
+        for (const p of proj) {
+          (p.assigned_employees || []).forEach((id) => assigneeSet.add(id));
+        }
+        setTotalAssignees(assigneeSet.size);
+
+        // fetch tasks for each project and sum counts
+        try {
+          const counts = await Promise.all(
+            proj.map(async (p) => {
+              const tasks = await fetchTasksByProject(p.id).catch(() => [] as any[]);
+              return Array.isArray(tasks) ? tasks.length : 0;
+            })
+          );
+          setTotalTasks(counts.reduce((a, b) => a + b, 0));
+        } catch (err) {
+          setTotalTasks(null);
+        }
       } catch (err) {
         setProjectsError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -102,8 +126,6 @@ export const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <Navbar />
-
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
@@ -130,33 +152,31 @@ export const Dashboard = () => {
               </div>
             </div>
 
-            {/* Active Sessions Card */}
+            {/* Total Projects Card */}
             <div className="bg-slate-800/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-slate-400 text-sm font-medium mb-2">Active Sessions</p>
-                  <p className="text-3xl font-bold text-white">
-                    {users.filter((u) => u.role !== 'inactive').length}
-                  </p>
+                  <p className="text-slate-400 text-sm font-medium mb-2">Total Projects</p>
+                  <p className="text-3xl font-bold text-white">{projects.length}</p>
                 </div>
                 <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
                   <svg className="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    <path d="M3 3h14v2H3V3zm0 4h10v2H3V7zM3 11h8v2H3v-2z" />
                   </svg>
                 </div>
               </div>
             </div>
 
-            {/* System Health Card */}
+            {/* Total Tasks Card */}
             <div className="bg-slate-800/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-slate-400 text-sm font-medium mb-2">System Health</p>
-                  <p className="text-3xl font-bold text-white">100%</p>
+                  <p className="text-slate-400 text-sm font-medium mb-2">Total Tasks</p>
+                  <p className="text-3xl font-bold text-white">{(totalTasks !== null && totalTasks > 0) ? totalTasks : (totalAssignees !== null ? totalAssignees : '—')}</p>
                 </div>
                 <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
                   <svg className="w-6 h-6 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 3.002v.952h.464c.814 0 1.319.777 1.319 1.591v4.382a1.536 1.536 0 01-1.536 1.536h-3.465a1.536 1.536 0 01-1.536-1.536v-.902c-.312.243-.643.468-.99.68a.5.5 0 01-.556-.832c.327-.188.64-.456.94-.784a.5.5 0 00.556-.832c-.299-.328-.612-.596-.939-.784a.5.5 0 01.556-.832c.3.228.629.455.94.784m4-3.68a1 1 0 00-1-1 .5.5 0 01-.5-.5.5.5 0 00-1 0 .5.5 0 01-.5.5 1 1 0 00-1 1v.952h4v-.952z" clipRule="evenodd" />
+                    <path d="M5 3h10v2H5V3zm0 4h10v2H5V7zm0 4h7v2H5v-2z" />
                   </svg>
                 </div>
               </div>
@@ -167,7 +187,7 @@ export const Dashboard = () => {
         <div className="bg-slate-800/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 mb-8">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-xl font-bold text-white">Projects</h3>
-            {userRole === 'ADMIN' && (
+            {userRole !== 'VIEWER' && (
               <button
                 onClick={() => navigate('/create-project')}
                 className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-200"
@@ -293,7 +313,15 @@ export const Dashboard = () => {
                   <h3 className="text-2xl font-bold text-white">{activeProject.name}</h3>
                   <p className="text-slate-400 text-sm">{activeProject.description}</p>
                 </div>
-                <button onClick={() => setActiveProject(null)} className="text-slate-300 hover:text-white">Close</button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => { navigate(`/projects/${activeProject.id}`); setActiveProject(null); }}
+                    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm"
+                  >
+                    View more
+                  </button>
+                  <button onClick={() => setActiveProject(null)} className="text-slate-300 hover:text-white">Close</button>
+                </div>
               </div>
 
               <div className="mt-6">

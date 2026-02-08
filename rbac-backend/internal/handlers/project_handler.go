@@ -70,7 +70,7 @@ func (h *ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 	userID, _ := r.Context().Value(middleware.UserIDKey).(string)
 
 	for _, p := range projects {
-		// If not ADMIN, only include projects assigned to the current user
+		// Only ADMIN sees all projects. Other roles see projects they're assigned to.
 		if role != rbac.RoleAdmin {
 			allowed := false
 			for _, uid := range p.AssignedEmployees {

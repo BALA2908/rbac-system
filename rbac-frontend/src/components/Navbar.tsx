@@ -70,15 +70,18 @@ export const Navbar = () => {
                 Create User
               </button>
             )}
-            <button
-              onClick={() => navigate('/create-project')}
-              className="text-slate-300 hover:text-white transition-colors flex items-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M3 6h14v2H3V6zm0 4h10v2H3v-2zM3 14h8v2H3v-2z" />
-              </svg>
-              Create Project
-            </button>
+            {userRole !== 'VIEWER' && (
+              <button
+                onClick={() => navigate('/create-project')}
+                className="text-slate-300 hover:text-white transition-colors flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M3 6h14v2H3V6zm0 4h10v2H3v-2zM3 14h8v2H3v-2z" />
+                </svg>
+                Create Project
+              </button>
+            )}
+            {/* Tasks moved into Project details page; no navbar link */}
           </div>
 
           {/* Logout Button */}

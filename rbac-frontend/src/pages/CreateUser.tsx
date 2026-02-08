@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Navbar } from '../components/Navbar';
+// Navbar is rendered by the App wrapper; do not render it here to avoid duplicates.
 
 export const CreateUser = () => {
   const navigate = useNavigate();
@@ -78,7 +78,6 @@ export const CreateUser = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <Navbar />
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

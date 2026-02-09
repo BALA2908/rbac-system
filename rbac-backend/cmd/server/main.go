@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"rbac-backend/internal/config"
 	"rbac-backend/internal/db"
 	"rbac-backend/internal/handlers"
 	"rbac-backend/internal/middleware"
@@ -29,6 +30,9 @@ func CORSMiddleware(next http.Handler) http.Handler {
 }
 
 func main() {
+	// Load configuration from .env file
+	config.LoadConfig()
+
 	database := db.Connect()
 	defer database.Close()
 
@@ -38,6 +42,7 @@ func main() {
 	})
 
 	// AUTH ROUTES
+	// POST /login - Authenticate user with username/password and return JWT token
 	http.Handle("/login", handlers.Login(database))
 
 	// ⭐ CREATE PROJECT HANDLER
@@ -51,7 +56,7 @@ func main() {
 	taskHandler := handlers.NewTaskHandler(taskRepo)
 
 	// ⭐ PROJECT ROUTES
-
+	// POST /projects/create - Create a new project (requires create permission)
 	http.Handle(
 		"/projects/create",
 		middleware.AuthMiddleware(
@@ -61,6 +66,7 @@ func main() {
 		),
 	)
 
+	// GET /projects - List all projects user has access to (requires view permission)
 	http.Handle(
 		"/projects",
 		middleware.AuthMiddleware(
@@ -70,6 +76,7 @@ func main() {
 		),
 	)
 
+	// PUT /projects/update - Update an existing project (requires edit permission)
 	http.Handle(
 		"/projects/update",
 		middleware.AuthMiddleware(
@@ -79,6 +86,7 @@ func main() {
 		),
 	)
 
+	// DELETE /projects/delete - Delete a project (requires create permission)
 	http.Handle(
 		"/projects/delete",
 		middleware.AuthMiddleware(
@@ -87,8 +95,7 @@ func main() {
 			),
 		),
 	)
-
-	// TASK ROUTES
+	// POST /tasks/create - Create a new task (requires create permission)
 	http.Handle(
 		"/tasks/create",
 		middleware.AuthMiddleware(
@@ -98,6 +105,7 @@ func main() {
 		),
 	)
 
+	// GET /tasks - List all tasks with permission filtering (requires view permission)
 	http.Handle(
 		"/tasks",
 		middleware.AuthMiddleware(
@@ -107,6 +115,7 @@ func main() {
 		),
 	)
 
+	// GET /tasks/get - Get a single task by ID (requires view permission)
 	http.Handle(
 		"/tasks/get",
 		middleware.AuthMiddleware(
@@ -116,6 +125,7 @@ func main() {
 		),
 	)
 
+	// PUT /tasks/update - Update task details like title, description, status (requires edit permission)
 	http.Handle(
 		"/tasks/update",
 		middleware.AuthMiddleware(
@@ -125,6 +135,7 @@ func main() {
 		),
 	)
 
+	// POST /tasks/assign - Assign task to users (requires edit permission)
 	http.Handle(
 		"/tasks/assign",
 		middleware.AuthMiddleware(
@@ -134,6 +145,7 @@ func main() {
 		),
 	)
 
+	// DELETE /tasks/delete - Delete a task (requires delete permission)
 	http.Handle(
 		"/tasks/delete",
 		middleware.AuthMiddleware(
@@ -143,6 +155,8 @@ func main() {
 		),
 	)
 
+	// ADMIN ROUTES
+	// POST /admin/create-user - Create a new user with assigned role (admin only, requires edit permission)
 	http.Handle(
 		"/admin/create-user",
 		middleware.AuthMiddleware(
@@ -151,6 +165,8 @@ func main() {
 			),
 		),
 	)
+
+	// GET /api/users - List all users with their roles and permissions (admin only, requires view permission)
 
 	// LIST USERS - protected route
 	http.Handle(

@@ -4,10 +4,10 @@ import (
 	"errors"
 	"time"
 
+	"rbac-backend/internal/config"
+
 	"github.com/golang-jwt/jwt/v5"
 )
-
-var jwtKey = []byte("super-secret-key")
 
 type Claims struct {
 	UserID string `json:"user_id"`
@@ -25,12 +25,12 @@ func GenerateJWT(userID, role string) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtKey)
+	return token.SignedString([]byte(config.AppConfig.JWTSecret))
 }
 
 func ValidateJWT(tokenStr string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
+		return []byte(config.AppConfig.JWTSecret), nil
 	})
 
 	if err != nil {

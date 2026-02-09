@@ -98,7 +98,7 @@ DB_PATH=rbac.db
 
 ### Regular User Accounts
 - **Username:** managerf@rbac.com
-  **Password:** 123456
+- **Password:** 123456
   **Role:** Manager
 
 - **Email:** "editor@example.com"

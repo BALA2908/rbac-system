@@ -90,62 +90,25 @@ PORT=8080
 DB_PATH=rbac.db
 ```
 
-**Important:** 
-- ✅ Add `.env` to `.gitignore` (contains secrets)
-- ⚠️ Change `JWT_SECRET` to a strong random key in production
-- `.env.example` is included for reference
 
-### Admin Account
-- **Username:** `admin`
-- **Password:** `password123`
+### Admin Account for Login
+- **Email:** "admin@example.com"
+- **Password:** admin123
+  **Role:** Admin
 
 ### Regular User Accounts
-- **Username:** `john_doe`  
-  **Password:** `password123`  
+- **Username:** managerf@rbac.com
+  **Password:** 123456
   **Role:** Manager
 
-- **Username:** `jane_smith`  
-  **Password:** `password123`  
+- **Email:** "editor@example.com"
+- **Password:** 123456
   **Role:** Editor
 
-- **Username:** `viewer_user`  
-  **Password:** `password123`  
+- **Email:** "viewer@example.com"
+- **Password:** 123456
   **Role:** Viewer
 
-## Key Features
-
-### Admin Dashboard
-- Create and manage roles
-- Define permissions per role
-- View all users and their assigned roles
-- Real-time permission enforcement
-
-### User Dashboard
-- View only accessible tables
-- See only accessible fields
-- Perform actions based on permissions
-- Kanban board for task management
-
-### API Endpoints
-
-**Authentication**
-- `POST /auth/login` - Login with username/password
-- `POST /auth/register` - Register new user (admin only)
-
-**Admin Features**
-- `GET /admin/users` - List all users
-- `POST /admin/users` - Create user
-- `GET /admin/roles` - List all roles
-- `POST /admin/roles` - Create role
-- `POST /admin/permissions` - Grant permission to role
-
-**User Data**
-- `GET /projects` - List projects (respects permissions)
-- `POST /projects` - Create project (if permitted)
-- `GET /tasks` - List tasks with permission filtering
-- `POST /tasks/create` - Create task
-
-All endpoints require JWT token in `Authorization: Bearer <token>` header.
 
 ## Architecture
 
@@ -172,32 +135,5 @@ rbac-frontend/
 │   └── utils/        # Helper functions
 ```
 
-## How It Works
-
-1. **User logs in** with username & password
-2. **Backend validates** credentials and issues JWT token
-3. **Frontend stores** token in localStorage
-4. **User accesses dashboard** with only permitted data
-5. **Backend enforces** all permission checks via RBAC middleware
-6. **Frontend hides** restricted tables & fields based on role
-
-## Testing Permission Enforcement
-
-1. Login as Admin → can access all features and manage permissions
-2. Login as Manager → can see Projects & Tasks, edit both
-3. Login as Editor → can see Projects & edit, only view Tasks
-4. Login as Viewer → can only view all data (read-only)
-
 Try performing restricted actions (edit as Viewer) to see 403 errors from backend.
 
-## Development Notes
-
-- All permissions are checked at the API level (backend validation is authoritative)
-- Frontend UI respects permissions for better UX but doesn't rely on it for security
-- Database migrations are run automatically on server startup
-- JWT tokens expire after configured duration
-- SQLite database file: `rbac.db`
-
-## License
-
-MIT

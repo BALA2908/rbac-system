@@ -65,12 +65,10 @@ func (h *ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 
 	var response []map[string]interface{}
 
-	// Determine role and userID to apply project-level visibility rules
 	role, _ := r.Context().Value(middleware.RoleKey).(string)
 	userID, _ := r.Context().Value(middleware.UserIDKey).(string)
 
 	for _, p := range projects {
-		// Only ADMIN sees all projects. Other roles see projects they're assigned to.
 		if role != rbac.RoleAdmin {
 			allowed := false
 			for _, uid := range p.AssignedEmployees {
@@ -93,9 +91,6 @@ func (h *ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 
 		filtered := utils.FilterFields(row, tablePerm.Fields)
 
-		// Ensure assigned_employees is included when the table view is allowed.
-		// Field-level config may omit this field; include it here so frontend can
-		// show assignees when the user can view projects at all.
 		if len(p.AssignedEmployees) > 0 && tablePerm.View {
 			filtered["assigned_employees"] = p.AssignedEmployees
 		}
@@ -117,17 +112,14 @@ func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// ✅ ID must be read before filtering
 	id, ok := incoming["id"].(string)
 	if !ok || id == "" {
 		http.Error(w, "project id required", http.StatusBadRequest)
 		return
 	}
 
-	// Remove ID from editable fields input
 	delete(incoming, "id")
 
-	// Filter only editable fields
 	safeData := utils.FilterEditableFields(incoming, tablePerm.Fields)
 
 	if len(safeData) == 0 {
@@ -135,7 +127,6 @@ func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Put ID back for repository WHERE clause
 	safeData["id"] = id
 
 	err := h.Repo.UpdateProjectDynamic(safeData)
@@ -145,7 +136,7 @@ func (h *ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(map[string]string{"status": "updated"})
-	return // ✅ VERY IMPORTANT
+	return
 
 }
 

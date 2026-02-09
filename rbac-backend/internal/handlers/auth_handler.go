@@ -18,13 +18,10 @@ import (
 func Login(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// ✅ Method check
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-
-		// ✅ Content-Type
 		w.Header().Set("Content-Type", "application/json")
 
 		var req struct {
@@ -84,7 +81,6 @@ func Signup(db *sql.DB) http.HandlerFunc {
 			userID, req.Name, req.Email, hashedPassword, role,
 		)
 		if err != nil {
-			// Most likely a unique constraint on email
 			http.Error(w, "Could not create user", http.StatusBadRequest)
 			return
 		}
@@ -164,7 +160,6 @@ func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if req.Role == "" {
 		req.Role = rbac.RoleViewer
 	}
-	// Only allow defined roles (no hardcoded logic beyond validation)
 	validRole := map[string]bool{
 		rbac.RoleAdmin: true, rbac.RoleManager: true,
 		rbac.RoleEditor: true, rbac.RoleViewer: true,
@@ -180,17 +175,14 @@ func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// ✅ IMPORTANT: generate ID + set is_active
 	user := models.User{
-		ID:           uuid.New().String(), // 🔥 YOU MISSED THIS
+		ID:           uuid.New().String(),
 		Name:         req.Name,
 		Email:        req.Email,
 		PasswordHash: hashed,
 		Role:         req.Role,
 		IsActive:     true,
 	}
-
-	// ✅ Save
 	if err := h.UserRepo.CreateUser(user); err != nil {
 		http.Error(w, "create failed", http.StatusInternalServerError)
 		return

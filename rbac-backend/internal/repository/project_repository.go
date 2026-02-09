@@ -49,10 +49,8 @@ func (r *ProjectRepository) CreateProjectDynamic(data map[string]interface{}) er
 		strings.Join(placeholders, ",") +
 		")"
 
-	// Extract assigned_employees if present
 	var assignments []string
 	if a, ok := data["assigned_employees"]; ok {
-		// copy and remove from data used for projects table
 		switch v := a.(type) {
 		case []string:
 			assignments = v
@@ -63,8 +61,7 @@ func (r *ProjectRepository) CreateProjectDynamic(data map[string]interface{}) er
 				}
 			}
 		}
-		// remove assignments from insert columns
-		// rebuild columns/args without assigned_employees
+
 		newCols := []string{}
 		newPlaceholders := []string{}
 		newArgs := []interface{}{}
@@ -86,9 +83,7 @@ func (r *ProjectRepository) CreateProjectDynamic(data map[string]interface{}) er
 		return err
 	}
 
-	// If assignments exist, insert into project_assignments
 	if len(assignments) > 0 {
-		// expect project id present in data
 		pid, _ := data["id"].(string)
 		if pid == "" {
 			return errors.New("project id required for assignments")
@@ -134,7 +129,6 @@ func (r *ProjectRepository) GetProjects() ([]models.Project, error) {
 			return nil, err
 		}
 
-		// fetch assigned employees for this project
 		assignRows, err := r.DB.Query(`SELECT user_id FROM project_assignments WHERE project_id = ?`, p.ID)
 		if err == nil {
 			defer assignRows.Close()

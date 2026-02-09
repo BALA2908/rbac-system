@@ -15,7 +15,6 @@ func setupTestDB(t *testing.T) *sql.DB {
 		t.Fatal(err)
 	}
 
-	// create minimal tables needed for tasks
 	schema := `
     CREATE TABLE users (id TEXT PRIMARY KEY, name TEXT);
     CREATE TABLE projects (id TEXT PRIMARY KEY, name TEXT, created_by TEXT);

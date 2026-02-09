@@ -16,7 +16,6 @@ func NewTaskRepository(db *sql.DB) *TaskRepository {
 }
 
 func (r *TaskRepository) CreateTask(t models.Task) error {
-	// marshal assignees to JSON string stored in assignee column
 	var ajson sql.NullString
 	if len(t.Assignees) > 0 {
 		b, _ := json.Marshal(t.Assignees)
@@ -96,7 +95,6 @@ func (r *TaskRepository) ListTasksByProject(projectID string) ([]models.Task, er
 }
 
 func (r *TaskRepository) ListTasksByAssignee(userID string) ([]models.Task, error) {
-	// assignee column now stores JSON array; use LIKE to find userID in text
 	rows, err := r.DB.Query(`SELECT id, project_id, title, description, status, assignee, created_by, started_at, completed_at, created_at, updated_at FROM tasks WHERE assignee LIKE ? ORDER BY created_at DESC`, "%"+userID+"%")
 	if err != nil {
 		return nil, err
@@ -142,7 +140,6 @@ func (r *TaskRepository) UpdateTask(t models.Task) error {
 }
 
 func (r *TaskRepository) AssignTask(taskID, userID string) error {
-	// append single userID to assignees array if not already present
 	t, err := r.GetTaskByID(taskID)
 	if err != nil || t == nil {
 		return err
@@ -161,12 +158,10 @@ func (r *TaskRepository) AssignTask(taskID, userID string) error {
 }
 
 func (r *TaskRepository) UpdateStatus(taskID, status string) error {
-	// set started_at if moving to IN_PROGRESS and not already set
 	if status == "IN_PROGRESS" {
 		_, err := r.DB.Exec(`UPDATE tasks SET status=?, started_at = COALESCE(started_at, ?), updated_at=? WHERE id=?`, status, time.Now(), time.Now(), taskID)
 		return err
 	}
-	// set completed_at when marking DONE or ARCHIVED
 	if status == "DONE" || status == "ARCHIVED" {
 		_, err := r.DB.Exec(`UPDATE tasks SET status=?, completed_at = ?, updated_at=? WHERE id=?`, status, time.Now(), time.Now(), taskID)
 		return err

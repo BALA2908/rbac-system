@@ -40,7 +40,6 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), UserIDKey, claims.UserID)
 		ctx = context.WithValue(ctx, RoleKey, claims.Role)
 
-		// ✅ CALL ONLY ONCE
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

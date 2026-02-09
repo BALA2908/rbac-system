@@ -39,8 +39,6 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract required fields from original incoming (before filtering)
-	// These are allowed on creation even though they're not editable afterward
 	pid, ok := incoming["project_id"].(string)
 	if !ok || pid == "" {
 		http.Error(w, "project_id required", http.StatusBadRequest)
@@ -52,7 +50,6 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Filter optional/editable fields
 	safe := utils.FilterEditableFields(incoming, tablePerm.Fields)
 
 	t := models.Task{
@@ -71,7 +68,6 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	if s, ok := safe["status"].(string); ok && s != "" {
 		t.Status = s
 	}
-	// accept assignees as []string or single string
 	if arr, ok := safe["assignees"].([]interface{}); ok {
 		for _, it := range arr {
 			if sid, ok := it.(string); ok {
@@ -119,8 +115,6 @@ func (h *TaskHandler) ListTasks(w http.ResponseWriter, r *http.Request) {
 
 	var out []map[string]interface{}
 	for _, t := range tasks {
-		// ADMIN, MANAGER and EDITOR may view all tasks for the project.
-		// VIEWER can only see tasks they created or are assigned to.
 		if role == rbac.RoleViewer {
 			allowed := t.CreatedBy == userID
 			if !allowed {
@@ -230,7 +224,6 @@ func (h *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch existing
 	existing, err := h.Repo.GetTaskByID(idVal)
 	if err != nil || existing == nil {
 		http.Error(w, "task not found", http.StatusNotFound)
@@ -264,7 +257,6 @@ func (h *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	} else if a, ok := safe["assignee"].(string); ok && a != "" {
-		// maintain backward compatibility for single assignee field
 		existing.Assignees = []string{a}
 	}
 
@@ -295,7 +287,6 @@ func (h *TaskHandler) AssignTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If assignees array provided, set as the assignees list
 	if len(payload.Assignees) > 0 {
 		t, err := h.Repo.GetTaskByID(payload.ID)
 		if err != nil || t == nil {

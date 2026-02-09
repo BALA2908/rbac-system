@@ -17,11 +17,10 @@ var AppConfig *Config
 
 // LoadConfig loads environment variables from .env file and initializes config
 func LoadConfig() {
-	// Load .env file (optional - fails gracefully if not found)
 	_ = godotenv.Load()
 
 	AppConfig = &Config{
-		JWTSecret: getEnv("JWT_SECRET", "super-secret-key"), // Default for development
+		JWTSecret: getEnv("JWT_SECRET", "super-secret-key"),
 		Port:      getEnv("PORT", "8080"),
 		DBPath:    getEnv("DB_PATH", "rbac.db"),
 	}

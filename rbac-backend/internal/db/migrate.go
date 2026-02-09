@@ -9,7 +9,6 @@ import (
 )
 
 func RunMigrations(db *sql.DB) error {
-	// Try multiple possible paths for migrations directory
 	possiblePaths := []string{
 		"migrations",
 		"./migrations",

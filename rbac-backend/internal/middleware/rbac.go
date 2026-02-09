@@ -25,7 +25,7 @@ func fullAccessPerm() models.ResourcePermission {
 		Create: true,
 		Edit:   true,
 		Delete: true,
-		Fields: nil, // nil => allow all fields in utils.FilterFields / FilterEditableFields
+		Fields: nil,
 	}
 }
 
@@ -39,7 +39,6 @@ func RBACMiddleware(database *sql.DB, table, action string, next http.Handler) h
 		}
 		role := roleVal.(string)
 
-		// Enforce users table is ADMIN-only regardless of DB config.
 		if table == "users" && role != rbac.RoleAdmin {
 			http.Error(w, "users table restricted to ADMIN", http.StatusForbidden)
 			return
@@ -48,10 +47,8 @@ func RBACMiddleware(database *sql.DB, table, action string, next http.Handler) h
 		var tablePerm models.ResourcePermission
 
 		if role == rbac.RoleAdmin {
-			// ADMIN: full access to all tables and fields; no DB lookup.
 			tablePerm = fullAccessPerm()
 		} else {
-			// Other roles: permissions ONLY from DB (no hardcoded logic).
 			perms, err := db.GetPermissionsByRole(database, role)
 			if err != nil {
 				http.Error(w, "permission lookup failed", http.StatusForbidden)

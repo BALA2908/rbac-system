@@ -29,10 +29,10 @@ All permissions are **configuration-driven** (stored in database, not hardcoded)
 3. **Tasks** - Project tasks with status tracking (TODO → IN_PROGRESS → REVIEW → DONE)
 
 ### Permission Enforcement
-- ✅ Unauthorized tables are hidden from the UI
-- ✅ Restricted fields are not visible in the frontend
-- ✅ Edit/Delete actions require backend permission validation
-- ✅ Unauthorized requests are rejected with 403 Forbidden
+- Unauthorized tables are hidden from the UI
+- Restricted fields are not visible in the frontend
+- Edit/Delete actions require backend permission validation
+- Unauthorized requests are rejected with 403 Forbidden
 
 ## Quick Start
 
